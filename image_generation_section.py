@@ -1,4 +1,5 @@
 from abc import ABC
+import io
 import os
 import streamlit as st
 import openai
@@ -89,17 +90,14 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
                 image_url = response.data[0].url
 
         if submit_button:
-            st.image(image_url)
+            st.image(image_url, caption=response.data[0].caption)
 
-            path = st.text_input("Path to save:", value = os.getcwd())
+            path = st.text_input("Path to save:", value=os.getcwd())
+                
             col1, _ = st.columns([1, 3])
             with col1:
-                if st.button("Save Image"):
-                    if response.status_code == 200:
-                        try:
-                            with open(f"{user_input}.jpg", "wb") as file:
-                                response.raw.decode_content = True
-                                file.write(response.raw.read())
-                            st.success("Image saved successfully")
-                        except:
-                            st.error("Error saving image")
+                if st.button('Download Image', use_container_width=True):
+                    with open(os.path.join(path, 'downloaded_image.jpg'), 'wb') as out_file:
+                        out_file.write(response.data[0].b64_json['image'].decode('base64'))
+                    st.success('Image downloaded successfully')
+

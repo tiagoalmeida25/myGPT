@@ -87,7 +87,8 @@ class ConversationSection(Section[ConversationSectionState]):
         col1, _, col2 = st.columns([1, 2, 1])
 
         with col1:
-            if st.button("Submit", use_container_width=True):
+            submit = st.button("Submit", use_container_width=True)
+            if submit:
                 response = openai.chat.completions.create(
                     model=selected_model,
                     messages=[
@@ -96,15 +97,17 @@ class ConversationSection(Section[ConversationSectionState]):
                     ],
                 )
 
-                assistant_response = response.choices[0].message.content
+        if submit:
+            user_input = ''
+            assistant_response = response.choices[0].message.content
 
-                self.state.conversations.append(
-                    {"user": user_input, "assistant": assistant_response}
-                )
-                with open("conversations.pkl", "wb") as f:
-                    pickle.dump(self.state.conversations, f)
+            self.state.conversations.append(
+                {"user": user_input, "assistant": assistant_response}
+            )
+            with open("conversations.pkl", "wb") as f:
+                pickle.dump(self.state.conversations, f)
 
-                st.markdown(f"**Assistant:** {assistant_response}")
+            st.markdown(f"**Assistant:** {assistant_response}")
 
         if self.state.conversations != []:
             with col2:
