@@ -6,7 +6,7 @@ from typing import Generic, TypeVar
 
 T = TypeVar("T")
 
-openai.api_key = "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"
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 
 class Section(Generic[T], ABC):

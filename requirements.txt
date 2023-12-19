@@ -1,5 +1,4 @@
 openai
 streamlit
-abc
 pickle
 os
