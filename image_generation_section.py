@@ -1,5 +1,6 @@
 from abc import ABC
 import io
+import requests
 import streamlit as st
 import openai
 
@@ -86,19 +87,15 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
                     n=1,
                 )
 
-                image = response.data[0].url
+                image_url = response.data[0].url
 
         if submit_button:
-            generated_image = st.image(image, caption=user_input)
-
-            buf = io.BytesIO()
-            generated_image.save(buf, format="jpg")
-            buf.seek(0)
+            st.image(image_url, caption=user_input)
 
             # Create a download button for the generated image
             st.download_button(
                 label="Download Image",
-                data=buf,
+                data=requests.get(image_url).content,
                 file_name=f"{user_input}.jpg",  # Use the caption as the filename
                 mime="image/jpg",  # Change the MIME type based on your image format
             )

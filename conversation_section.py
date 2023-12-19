@@ -90,8 +90,14 @@ class ConversationSection(Section[ConversationSectionState]):
             key="user_input",
         )
 
-        if st.session_state.price > 0:
-            st.markdown(f"**Price:** ${st.session_state.price:.6f}")
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            if st.button("Check price", use_container_width=True, key="check_price"):
+                self.calculate_price()
+
+        with col2:
+            if st.session_state.price > 0:
+                st.markdown(f"**Price:** ${st.session_state.price:.6f}")
 
         col1, _, col2 = st.columns([1, 2, 1])
 
