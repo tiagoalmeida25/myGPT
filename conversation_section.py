@@ -90,14 +90,17 @@ class ConversationSection(Section[ConversationSectionState]):
             value=st.session_state.user_input,
         )
 
-        col1, col2 = st.columns([1, 3])
-        with col1:
-            if st.button("Check price", use_container_width=True, key="check_price"):
-                st.session_state.price = self.calculate_price()
+        if st.session_state.user_input != "":
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                if st.button(
+                    "Check price", use_container_width=True, key="check_price"
+                ):
+                    st.session_state.price = self.calculate_price()
 
-        with col2:
-            if st.session_state.price > 0:
-                st.markdown(f"**Price:** ${st.session_state.price:.6f}")
+            with col2:
+                if st.session_state.price > 0:
+                    st.markdown(f"**Price:** ${self.calculate_price():.6f}")
 
         col1, _, col2 = st.columns([1, 2, 1])
 
@@ -129,9 +132,13 @@ class ConversationSection(Section[ConversationSectionState]):
     def calculate_price(self):
         tokens = len(st.session_state.user_input.split(" ")) * 0.75
 
+        print(tokens)
+
         if self.selected_model == "gpt-3.5-turbo-1106":
             price = 0.001 * tokens / 1000
         elif self.selected_model == "gpt-4-1106-preview":
             price = 0.01 * tokens / 1000
+
+        print(price)
 
         return price
