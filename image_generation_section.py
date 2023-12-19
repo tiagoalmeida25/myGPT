@@ -76,7 +76,8 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
 
         col1, _ = st.columns([1, 3])
         with col1:
-            if st.button("Submit", use_container_width=True):
+            submit_button =  st.button("Submit", use_container_width=True)
+            if submit_button:
                 response = openai.images.generate(
                     model=selected_model,
                     prompt=user_input,
@@ -87,10 +88,10 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
 
                 image_url = response.data[0].url
 
-                # Display the response
-                st.image(image_url)
+        if submit_button:
+            st.image(image_url)
 
-                if st.button("Save Image"):
-                    if response.status_code == 200:
-                        with open(f"{user_input}.jpg", "wb") as file:
-                            file.write(image_url)
+            if st.button("Save Image"):
+                if response.status_code == 200:
+                    with open(f"{user_input}.jpg", "wb") as file:
+                        file.write(image_url)

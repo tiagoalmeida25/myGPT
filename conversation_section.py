@@ -45,10 +45,12 @@ class ConversationSection(Section[ConversationSectionState]):
         self.state = state
 
     def run(self):
+        has_conversations = False
         # Check if the pickle file for saving conversations exists
         if os.path.isfile("conversations.pkl"):
             # If exists, then load the previous conversations
             with open("conversations.pkl", "rb") as f:
+                has_conversations = True
                 self.state.conversations = pickle.load(f)
         else:
             # If not exist, then start a new list for saving conversations
@@ -56,7 +58,7 @@ class ConversationSection(Section[ConversationSectionState]):
 
         st.title("Conversation Mode")
 
-        col1, col2 = st.columns([1, 1])
+        col1, col2 = st.columns([1, 2])
 
         with col1:
             selected_model = st.selectbox(
@@ -111,9 +113,10 @@ class ConversationSection(Section[ConversationSectionState]):
                 # Display the response
                 st.markdown(f"**Assistant:** {assistant_response}")
 
-        with col2:
-            if st.button("Clear Conversation", use_container_width=True):
-                # Clear the conversation list and delete the pickle file
-                self.state.conversations = []
-                os.remove("conversations.pkl")
-                st.info("Conversation cleared!")
+        if has_conversations:
+            with col2:
+                if st.button("Clear Conversation", use_container_width=True):
+                    # Clear the conversation list and delete the pickle file
+                    self.state.conversations = []
+                    os.remove("conversations.pkl")
+                    st.info("Conversation cleared!")
