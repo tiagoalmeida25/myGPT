@@ -13,7 +13,6 @@ SECTION_STATE_MAP = {
 
 
 def run_app():
-    st.sidebar.title("myGPT")
     if "isLoggedIn" not in st.session_state:
         st.session_state.isLoggedIn = False
 
@@ -41,6 +40,8 @@ def run_app():
 
     if st.session_state.isLoggedIn:
         login_placeholder = None
+        st.sidebar.title("myGPT")
+
         mapping = {
             "Conversation": ConversationSection,
             "Image Generation": ImageGenerationSection,
