@@ -84,10 +84,8 @@ class ConversationSection(Section[ConversationSectionState]):
             st.session_state.user_input = ""
             st.session_state.assistant_response = ""
 
-        st.text_input(
-            "Enter your message",
-            on_change=self.calculate_price,
-            value=st.session_state.user_input,
+        st.session_state.user_input = st.text_input(
+            "Enter your message", value=st.session_state.user_input
         )
 
         if st.session_state.user_input != "":
