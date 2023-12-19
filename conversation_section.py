@@ -55,28 +55,19 @@ class ConversationSection(Section[ConversationSectionState]):
             self.state.conversations = []
 
         st.title("Conversation Mode")
-        
-        col1, col2 = st.columns(2)
+
+        col1, col2 = st.columns([1, 1])
+
         with col1:
-            st.text("")
-            if st.button("Clear Conversation"):
-                # Clear the conversation list and delete the pickle file
-                self.state.conversations = []
-                os.remove("conversations.pkl")
-                st.info("Conversation cleared!")
-        with col2:
             selected_model = st.selectbox(
                 "Select a model", ["gpt-3.5-turbo-1106", "gpt-4-1106-preview"]
             )
-        with st.expander("Pricing"):
-            st.dataframe(
-                hide_index=True,
-                data=[
-                    ["Model", "Input", "Output"],
-                    ["gpt-3.5-turbo-1106", "	$0.0010 / 1K tokens", "$0.0020 / 1K tokens"],
-                    ["gpt-4-1106-preview", "$0.0010 / 1K tokens", "$0.0020 / 1K tokens"],
-                ],
-            )
+        with col2:
+            st.text("")
+            if selected_model == "gpt-3.5-turbo-1106":
+                st.info("Pricing: \$0.0010 / 1K tokens , $0.0020 / 1K tokens")
+            if selected_model == "gpt-4-1106-preview":
+                st.info("Pricing: \$0.010 / 1K tokens , $0.030 / 1K tokens")
 
         # Display previous conversations
         for conversation in self.state.conversations:
@@ -86,25 +77,34 @@ class ConversationSection(Section[ConversationSectionState]):
         # Input field
         user_input = st.text_input("Enter your message")
 
-        # Submit button
-        if st.button("Submit"):
-            # Send the user's message to OpenAI API
-            response = openai.chat.completions.create(
-                model=selected_model,
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": f"{user_input}"},
-                ],
-            )
+        col1, _,col2 = st.columns([1,2, 1])
 
-            assistant_response = response.choices[0].message.content
+        with col1:
+            if st.button("Submit", use_container_width=True):
+                # Send the user's message to OpenAI API
+                response = openai.chat.completions.create(
+                    model=selected_model,
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": f"{user_input}"},
+                    ],
+                )
 
-            # Save the conversation
-            self.state.conversations.append(
-                {"user": user_input, "assistant": assistant_response}
-            )
-            with open("conversations.pkl", "wb") as f:
-                pickle.dump(self.state.conversations, f)
+                assistant_response = response.choices[0].message.content
 
-            # Display the response
-            st.markdown(f"**Assistant:** {assistant_response}")
+                # Save the conversation
+                self.state.conversations.append(
+                    {"user": user_input, "assistant": assistant_response}
+                )
+                with open("conversations.pkl", "wb") as f:
+                    pickle.dump(self.state.conversations, f)
+
+                # Display the response
+                st.markdown(f"**Assistant:** {assistant_response}")
+
+        with col2:
+            if st.button("Clear Conversation", use_container_width=True):
+                # Clear the conversation list and delete the pickle file
+                self.state.conversations = []
+                os.remove("conversations.pkl")
+                st.info("Conversation cleared!")

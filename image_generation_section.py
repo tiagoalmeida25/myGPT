@@ -61,36 +61,36 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
                     ["1024x1024"],
                 )
 
-        with st.expander("Pricing"):
-            st.dataframe(
-                hide_index=True,
-                data=[
-                    ["Model", "Size", "Price"],
-                    ["DALL·E 3", "1024x1024", "$0.040 / image"],
-                    ["DALL·E 2", "1024x1024", "$0.020 / image"],
-                    ["", "512x512", "$0.018 / image"],
-                ]
-            )
-            
+        with col3:
+            st.text("")
+            if selected_model == "dall-e-2" and selected_size == "512x512":
+                st.info("Pricing: $0.018 / image")
+            if selected_model == "dall-e-2" and selected_size == "1024x1024":
+                st.info("Pricing: $0.020 / image")
+            if selected_model == "dall-e-3" and selected_size == "1024x1024":
+                st.info("Pricing: $0.040 / image")
+
         # Input field
         user_input = st.text_input("Enter your prompt")
 
-        # Submit button
-        if st.button("Submit"):
-            response = openai.images.generate(
-                model=selected_model,
-                prompt=user_input,
-                size=selected_size,
-                quality="standard",
-                n=1,
-            )
 
-            image_url = response.data[0].url
+        col1, _ = st.columns([1, 3])
+        with col1:
+            if st.button("Submit", use_container_width=True):
+                response = openai.images.generate(
+                    model=selected_model,
+                    prompt=user_input,
+                    size=selected_size,
+                    quality="standard",
+                    n=1,
+                )
 
-            # Display the response
-            st.image(image_url)
+                image_url = response.data[0].url
 
-            if st.button("Save Image"):
-                if response.status_code == 200:
-                    with open(f"{user_input}.jpg", "wb") as file:
-                        file.write(image_url)
+                # Display the response
+                st.image(image_url)
+
+                if st.button("Save Image"):
+                    if response.status_code == 200:
+                        with open(f"{user_input}.jpg", "wb") as file:
+                            file.write(image_url)
