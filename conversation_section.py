@@ -82,17 +82,19 @@ class ConversationSection(Section[ConversationSectionState]):
             st.markdown(f"**Assistant:** {self.assistant_response}")
             self.user_input = ""
             self.assistant_response = ""
-            
 
-        st.text_input("Enter your message", on_change=self.calculate_price, value=self.user_input)
+        st.text_input("Enter your message", value=self.user_input)
+        self.calculate_price()
+
         if self.price > 0:
             st.markdown(f"**Price:** ${self.price:.4f}")
 
         col1, _, col2 = st.columns([1, 2, 1])
 
         with col1:
-            submit = st.button("Submit", use_container_width=True)
-            if submit:
+            st.button("Submit", use_container_width=True, key="submit")
+
+            if st.session_state.submit:
                 response = openai.chat.completions.create(
                     model=self.selected_model,
                     messages=[
@@ -104,8 +106,7 @@ class ConversationSection(Section[ConversationSectionState]):
                     ],
                 )
 
-        if submit:
-            user_input = ""
+        if st.session_state.submit:
             self.assistant_response = response.choices[0].message.content
 
             self.state.conversations.append(
@@ -113,9 +114,9 @@ class ConversationSection(Section[ConversationSectionState]):
             )
 
     def calculate_price(self):
-        tokens = len(self.user_input.split(' ')) * 0.75
-        
+        tokens = len(self.user_input.split(" ")) * 0.75
+
         if self.selected_model == "gpt-3.5-turbo-1106":
-           self.price = 0.001 * tokens / 1000
+            self.price = 0.001 * tokens / 1000
         elif self.selected_model == "gpt-4-1106-preview":
             self.price = 0.01 * tokens / 1000

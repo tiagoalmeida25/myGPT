@@ -1,7 +1,5 @@
 from abc import ABC
 import io
-import os
-import requests
 import streamlit as st
 import openai
 
@@ -91,7 +89,7 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
                 image = response.data[0]
 
         if submit_button:
-            st.image(image, caption=response.data[0].revised_prompt)
+            st.image(image, caption=user_input)
 
             buf = io.BytesIO()
             image.save(buf, format="jpg")
@@ -101,6 +99,6 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
             st.download_button(
                 label="Download Image",
                 data=buf,
-                file_name=f"{response.data[0].revised_prompt}.jpg",  # Use the caption as the filename
+                file_name=f"{user_input}.jpg",  # Use the caption as the filename
                 mime="image/jpg",  # Change the MIME type based on your image format
             )
