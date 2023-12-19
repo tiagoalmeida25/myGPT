@@ -86,13 +86,13 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
                     n=1,
                 )
 
-                image = response.data[0]
+                image = response.data[0].url
 
         if submit_button:
-            st.image(image, caption=user_input)
+            generated_image = st.image(image, caption=user_input)
 
             buf = io.BytesIO()
-            image.save(buf, format="jpg")
+            generated_image.save(buf, format="jpg")
             buf.seek(0)
 
             # Create a download button for the generated image

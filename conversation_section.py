@@ -43,9 +43,9 @@ class ConversationSection(Section[ConversationSectionState]):
         self.state = state
         self.state.conversations = []  # could use firebase to store conversations
         self.selected_model = "gpt-4-1106-preview"
-        self.price = 0
-        self.user_input = ""
-        self.assistant_response = ""
+        st.session_state.user_input = ""
+        st.session_state.assistant_response = ""
+        st.session_state.price = 0
 
     def run(self):
         st.title("Conversation Mode")
@@ -56,6 +56,7 @@ class ConversationSection(Section[ConversationSectionState]):
             self.selected_model = st.selectbox(
                 "Select a model",
                 ["gpt-3.5-turbo-1106", "gpt-4-1106-preview"],
+                index=1,
             )
         with col2:
             st.text("")
@@ -78,16 +79,19 @@ class ConversationSection(Section[ConversationSectionState]):
             st.markdown(f"**User:** {conversation['user']}")
             st.markdown(f"**Assistant:** {conversation['assistant']}")
 
-        if self.assistant_response:
-            st.markdown(f"**Assistant:** {self.assistant_response}")
-            self.user_input = ""
-            self.assistant_response = ""
+        if st.session_state.assistant_response:
+            st.markdown(f"**Assistant:** {st.session_state.assistant_response}")
+            st.session_state.user_input = ""
+            st.session_state.assistant_response = ""
 
-        st.text_input("Enter your message", value=self.user_input)
-        self.calculate_price()
+        st.text_input(
+            "Enter your message",
+            on_change=self.calculate_price,
+            key="user_input",
+        )
 
-        if self.price > 0:
-            st.markdown(f"**Price:** ${self.price:.4f}")
+        if st.session_state.price > 0:
+            st.markdown(f"**Price:** ${st.session_state.price:.6f}")
 
         col1, _, col2 = st.columns([1, 2, 1])
 
@@ -102,21 +106,24 @@ class ConversationSection(Section[ConversationSectionState]):
                             "role": "system",
                             "content": "You are a helpful assistant. Some regards: When giving code as a response, no need to include comments, unless requested or strictly necessary.",
                         },
-                        {"role": "user", "content": f"{self.user_input}"},
+                        {"role": "user", "content": f"{st.session_state.user_input}"},
                     ],
                 )
 
         if st.session_state.submit:
-            self.assistant_response = response.choices[0].message.content
+            st.session_state.assistant_response = response.choices[0].message.content
 
             self.state.conversations.append(
-                {"user": self.user_input, "assistant": self.assistant_response}
+                {
+                    "user": st.session_state.user_input,
+                    "assistant": st.session_state.assistant_response,
+                }
             )
 
     def calculate_price(self):
-        tokens = len(self.user_input.split(" ")) * 0.75
+        tokens = len(st.session_state.user_input.split(" ")) * 0.75
 
         if self.selected_model == "gpt-3.5-turbo-1106":
-            self.price = 0.001 * tokens / 1000
+            st.session_state.price = 0.001 * tokens / 1000
         elif self.selected_model == "gpt-4-1106-preview":
-            self.price = 0.01 * tokens / 1000
+            st.session_state.price = 0.01 * tokens / 1000
