@@ -69,6 +69,15 @@ class ConversationSection(Section[ConversationSectionState]):
             if selected_model == "gpt-4-1106-preview":
                 st.info("Pricing: \$0.010 / 1K tokens , $0.030 / 1K tokens")
 
+        with st.expander("See pricing details", expanded=False):
+            st.markdown(
+                """
+                    Multiple models, each with different capabilities and price points. 
+                    Prices are per 1,000 tokens. You can think of tokens as pieces of words, 
+                    where 1,000 tokens are about 750 words. This paragraph is 35 tokens. ~ \$0.00035 
+                """
+            )
+
         # Display previous conversations
         for conversation in self.state.conversations:
             st.markdown(f"**User:** {conversation['user']}")
@@ -77,7 +86,7 @@ class ConversationSection(Section[ConversationSectionState]):
         # Input field
         user_input = st.text_input("Enter your message")
 
-        col1, _,col2 = st.columns([1,2, 1])
+        col1, _, col2 = st.columns([1, 2, 1])
 
         with col1:
             if st.button("Submit", use_container_width=True):
