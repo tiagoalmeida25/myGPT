@@ -87,13 +87,13 @@ class ConversationSection(Section[ConversationSectionState]):
         st.text_input(
             "Enter your message",
             on_change=self.calculate_price,
-            key="user_input",
+            value=st.session_state.user_input,
         )
 
         col1, col2 = st.columns([1, 3])
         with col1:
             if st.button("Check price", use_container_width=True, key="check_price"):
-                self.calculate_price()
+                st.session_state.price = self.calculate_price()
 
         with col2:
             if st.session_state.price > 0:
@@ -130,6 +130,8 @@ class ConversationSection(Section[ConversationSectionState]):
         tokens = len(st.session_state.user_input.split(" ")) * 0.75
 
         if self.selected_model == "gpt-3.5-turbo-1106":
-            st.session_state.price = 0.001 * tokens / 1000
+            price = 0.001 * tokens / 1000
         elif self.selected_model == "gpt-4-1106-preview":
-            st.session_state.price = 0.01 * tokens / 1000
+            price = 0.01 * tokens / 1000
+
+        return price
