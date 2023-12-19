@@ -1,8 +1,6 @@
 from abc import ABC
 import streamlit as st
 import openai
-import os
-import pickle
 
 from typing import Generic, TypeVar
 
@@ -43,29 +41,27 @@ class ConversationSectionState(StateDependencies):
 class ConversationSection(Section[ConversationSectionState]):
     def __init__(self, state: ConversationSectionState):
         self.state = state
+        self.state.conversations = []  # could use firebase to store conversations
+        self.selected_model = "gpt-4-1106-preview"
+        self.price = 0
+        self.user_input = ""
+        self.assistant_response = ""
 
     def run(self):
-        # Check if the pickle file for saving conversations exists
-        if os.path.isfile("conversations.pkl"):
-            # If exists, then load the previous conversations
-            with open("conversations.pkl", "rb") as f:
-                self.state.conversations = pickle.load(f)
-        else:
-            self.state.conversations = []
-
         st.title("Conversation Mode")
 
         col1, col2 = st.columns([1, 2])
 
         with col1:
-            selected_model = st.selectbox(
-                "Select a model", ["gpt-3.5-turbo-1106", "gpt-4-1106-preview"]
+            self.selected_model = st.selectbox(
+                "Select a model",
+                ["gpt-3.5-turbo-1106", "gpt-4-1106-preview"],
             )
         with col2:
             st.text("")
-            if selected_model == "gpt-3.5-turbo-1106":
+            if self.selected_model == "gpt-3.5-turbo-1106":
                 st.info("Pricing: \$0.0010 / 1K tokens , $0.0020 / 1K tokens")
-            if selected_model == "gpt-4-1106-preview":
+            if self.selected_model == "gpt-4-1106-preview":
                 st.info("Pricing: \$0.010 / 1K tokens , $0.030 / 1K tokens")
 
         with st.expander("See pricing details", expanded=False):
@@ -82,7 +78,15 @@ class ConversationSection(Section[ConversationSectionState]):
             st.markdown(f"**User:** {conversation['user']}")
             st.markdown(f"**Assistant:** {conversation['assistant']}")
 
-        user_input = st.text_input("Enter your message")
+        if self.assistant_response:
+            st.markdown(f"**Assistant:** {self.assistant_response}")
+            self.user_input = ""
+            self.assistant_response = ""
+            
+
+        st.text_input("Enter your message", on_change=self.calculate_price, value=self.user_input)
+        if self.price > 0:
+            st.markdown(f"**Price:** ${self.price:.4f}")
 
         col1, _, col2 = st.columns([1, 2, 1])
 
@@ -90,29 +94,28 @@ class ConversationSection(Section[ConversationSectionState]):
             submit = st.button("Submit", use_container_width=True)
             if submit:
                 response = openai.chat.completions.create(
-                    model=selected_model,
+                    model=self.selected_model,
                     messages=[
-                        {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": f"{user_input}"},
+                        {
+                            "role": "system",
+                            "content": "You are a helpful assistant. Some regards: When giving code as a response, no need to include comments, unless requested or strictly necessary.",
+                        },
+                        {"role": "user", "content": f"{self.user_input}"},
                     ],
                 )
 
         if submit:
-            user_input = ''
-            assistant_response = response.choices[0].message.content
+            user_input = ""
+            self.assistant_response = response.choices[0].message.content
 
             self.state.conversations.append(
-                {"user": user_input, "assistant": assistant_response}
+                {"user": self.user_input, "assistant": self.assistant_response}
             )
-            with open("conversations.pkl", "wb") as f:
-                pickle.dump(self.state.conversations, f)
 
-            st.markdown(f"**Assistant:** {assistant_response}")
-
-        if self.state.conversations != []:
-            with col2:
-                if st.button("Clear Conversation", use_container_width=True):
-                    # Clear the conversation list and delete the pickle file
-                    self.state.conversations = []
-                    os.remove("conversations.pkl")
-                    st.info("Conversation cleared!")
+    def calculate_price(self):
+        tokens = len(self.user_input.split(' ')) * 0.75
+        
+        if self.selected_model == "gpt-3.5-turbo-1106":
+           self.price = 0.001 * tokens / 1000
+        elif self.selected_model == "gpt-4-1106-preview":
+            self.price = 0.01 * tokens / 1000

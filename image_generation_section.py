@@ -1,6 +1,7 @@
 from abc import ABC
 import io
 import os
+import requests
 import streamlit as st
 import openai
 
@@ -87,17 +88,19 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
                     n=1,
                 )
 
-                image_url = response.data[0].url
+                image = response.data[0]
 
         if submit_button:
-            st.image(image_url, caption=user_input)
+            st.image(image, caption=response.data[0].revised_prompt)
 
-            path = st.text_input("Path to save:", value=os.getcwd())
-                
-            col1, _ = st.columns([1, 3])
-            with col1:
-                if st.button('Download Image', use_container_width=True):
-                    with open(os.path.join(path, 'downloaded_image.jpg'), 'wb') as out_file:
-                        out_file.write(response.data[0].b64_json['image'].decode('base64'))
-                    st.success('Image downloaded successfully')
+            buf = io.BytesIO()
+            image.save(buf, format="jpg")
+            buf.seek(0)
 
+            # Create a download button for the generated image
+            st.download_button(
+                label="Download Image",
+                data=buf,
+                file_name=f"{response.data[0].revised_prompt}.jpg",  # Use the caption as the filename
+                mime="image/jpg",  # Change the MIME type based on your image format
+            )
