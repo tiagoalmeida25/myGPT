@@ -45,15 +45,12 @@ class ConversationSection(Section[ConversationSectionState]):
         self.state = state
 
     def run(self):
-        has_conversations = False
         # Check if the pickle file for saving conversations exists
         if os.path.isfile("conversations.pkl"):
             # If exists, then load the previous conversations
             with open("conversations.pkl", "rb") as f:
-                has_conversations = True
                 self.state.conversations = pickle.load(f)
         else:
-            # If not exist, then start a new list for saving conversations
             self.state.conversations = []
 
         st.title("Conversation Mode")
@@ -85,14 +82,12 @@ class ConversationSection(Section[ConversationSectionState]):
             st.markdown(f"**User:** {conversation['user']}")
             st.markdown(f"**Assistant:** {conversation['assistant']}")
 
-        # Input field
         user_input = st.text_input("Enter your message")
 
         col1, _, col2 = st.columns([1, 2, 1])
 
         with col1:
             if st.button("Submit", use_container_width=True):
-                # Send the user's message to OpenAI API
                 response = openai.chat.completions.create(
                     model=selected_model,
                     messages=[
@@ -103,17 +98,15 @@ class ConversationSection(Section[ConversationSectionState]):
 
                 assistant_response = response.choices[0].message.content
 
-                # Save the conversation
                 self.state.conversations.append(
                     {"user": user_input, "assistant": assistant_response}
                 )
                 with open("conversations.pkl", "wb") as f:
                     pickle.dump(self.state.conversations, f)
 
-                # Display the response
                 st.markdown(f"**Assistant:** {assistant_response}")
 
-        if has_conversations:
+        if self.state.conversations != []:
             with col2:
                 if st.button("Clear Conversation", use_container_width=True):
                     # Clear the conversation list and delete the pickle file

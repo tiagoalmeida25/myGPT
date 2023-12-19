@@ -1,4 +1,5 @@
 from abc import ABC
+import os
 import streamlit as st
 import openai
 
@@ -73,10 +74,9 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
         # Input field
         user_input = st.text_input("Enter your prompt")
 
-
         col1, _ = st.columns([1, 3])
         with col1:
-            submit_button =  st.button("Submit", use_container_width=True)
+            submit_button = st.button("Submit", use_container_width=True)
             if submit_button:
                 response = openai.images.generate(
                     model=selected_model,
@@ -91,7 +91,15 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
         if submit_button:
             st.image(image_url)
 
-            if st.button("Save Image"):
-                if response.status_code == 200:
-                    with open(f"{user_input}.jpg", "wb") as file:
-                        file.write(image_url)
+            path = st.text_input("Path to save:", value = os.getcwd())
+            col1, _ = st.columns([1, 3])
+            with col1:
+                if st.button("Save Image"):
+                    if response.status_code == 200:
+                        try:
+                            with open(f"{user_input}.jpg", "wb") as file:
+                                response.raw.decode_content = True
+                                file.write(response.raw.read())
+                            st.success("Image saved successfully")
+                        except:
+                            st.error("Error saving image")
