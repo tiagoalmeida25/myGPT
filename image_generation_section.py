@@ -90,7 +90,7 @@ class ImageGenerationSection(Section[ImageGenerationSectionState]):
                 image_url = response.data[0].url
 
         if submit_button:
-            st.image(image_url, caption=response.data[0].caption)
+            st.image(image_url, caption=user_input)
 
             path = st.text_input("Path to save:", value=os.getcwd())
                 
