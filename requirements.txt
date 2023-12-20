@@ -3,4 +3,4 @@ streamlit
 requests
 google.cloud
 google.generativeai
-vertexai.language_models
+google-cloud-aiplatform
