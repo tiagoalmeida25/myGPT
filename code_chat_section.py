@@ -26,7 +26,7 @@ chat_model = CodeChatModel.from_pretrained("codechat-bison")
 class State:
     def __init__(self):
         self.chat = None
-        self.conversations = []
+        self.code_conversations = []
         self.user_input = ""
         self.assistant_response = ""
 
@@ -37,38 +37,38 @@ class State:
         )
 
     def save_state(self):
-        with open("conversations.json", "w") as f:
-            json.dump(self.conversations, f)
+        with open("code_conversations.json", "w") as f:
+            json.dump(self.code_conversations, f)
 
     def clear_state(self):
-        self.conversations = []
+        self.code_conversations = []
         self.user_input = ""
         self.assistant_response = ""
         self.start_chat()
         self.save_state()
 
-    def get_conversations(self):
-        if "conversations" not in st.session_state:
-            self.conversations = self.dependencies.open_conversations()
-        return self.conversations
+    def get_code_conversations(self):
+        if "code_conversations" not in st.session_state:
+            self.code_conversations = self.dependencies.open_code_conversations()
+        return self.code_conversations
 
     def update_conversation(self, user_input, assistant_response):
-        self.conversations.append({"user": user_input, "assistant": assistant_response})
-        with open("conversations.json", "w") as f:
-            json.dump(self.conversations, f)
+        self.code_conversations.append({"user": user_input, "assistant": assistant_response})
+        with open("code_conversations.json", "w") as f:
+            json.dump(self.code_conversations, f)
 
 
 class StateDependencies:
     def __init__(self, state):
         self.state = state
 
-    def open_conversations(self):
+    def open_code_conversations(self):
         try:
-            with open("conversations.json", "r") as f:
-                model_conversations_dict = json.load(f)
+            with open("code_conversations.json", "r") as f:
+                model_code_conversations_dict = json.load(f)
         except:
-            model_conversations_dict = []
-        return model_conversations_dict
+            model_code_conversations_dict = []
+        return model_code_conversations_dict
 
 
 class CodeChatState(State):
@@ -97,7 +97,7 @@ class CodeChatSection:
 
     def run(self):
         st.title("Code Chat")
-        for conversation in self.state.get_conversations():
+        for conversation in self.state.get_code_conversations():
             st.markdown(f"**User:** {conversation['user']}")
             st.markdown(f"**Assistant:** {conversation['assistant']}")
 

@@ -13,7 +13,7 @@ genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 class State:
     def __init__(self):
         self.chat = None
-        self.conversations = []
+        self.gemini_conversations = []
         self.user_input = ""
         self.assistant_response = ""
 
@@ -24,38 +24,38 @@ class State:
         )
 
     def save_state(self):
-        with open("conversations.json", "w") as f:
-            json.dump(self.conversations, f)
+        with open("gemini_conversations.json", "w") as f:
+            json.dump(self.gemini_conversations, f)
 
     def clear_state(self):
-        self.conversations = []
+        self.gemini_conversations = []
         self.user_input = ""
         self.assistant_response = ""
         self.start_chat()
         self.save_state()
 
-    def get_conversations(self):
-        if "conversations" not in st.session_state:
-            self.conversations = self.dependencies.open_conversations()
-        return self.conversations
+    def get_gemini_conversations(self):
+        if "gemini_conversations" not in st.session_state:
+            self.gemini_conversations = self.dependencies.open_gemini_conversations()
+        return self.gemini_conversations
 
     def update_conversation(self, user_input, assistant_response):
-        self.conversations.append({"user": user_input, "assistant": assistant_response})
-        with open("conversations.json", "w") as f:
-            json.dump(self.conversations, f)
+        self.gemini_conversations.append({"user": user_input, "assistant": assistant_response})
+        with open("gemini_conversations.json", "w") as f:
+            json.dump(self.gemini_conversations, f)
 
 
 class StateDependencies:
     def __init__(self, state):
         self.state = state
 
-    def open_conversations(self):
+    def open_gemini_conversations(self):
         try:
-            with open("conversations.json", "r") as f:
-                model_conversations_dict = json.load(f)
+            with open("gemini_conversations.json", "r") as f:
+                model_gemini_conversations_dict = json.load(f)
         except:
-            model_conversations_dict = []
-        return model_conversations_dict
+            model_gemini_conversations_dict = []
+        return model_gemini_conversations_dict
 
 
 class GeminiChatState(State):
@@ -84,7 +84,7 @@ class GeminiChatSection:
 
     def run(self):
         st.title("Code Chat")
-        for conversation in self.state.get_conversations():
+        for conversation in self.state.get_gemini_conversations():
             st.markdown(f"**User:** {conversation['user']}")
             st.markdown(f"**Assistant:** {conversation['assistant']}")
 

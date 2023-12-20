@@ -3,7 +3,7 @@ import streamlit as st
 from conversation_section import ConversationSection, ConversationSectionState
 from image_generation_section import ImageGenerationSection, ImageGenerationSectionState
 from code_chat_section import CodeChatSection, CodeChatState
-from gemini_chat import GeminiChatSection, GeminiChatState
+from gemini_chat_section import GeminiChatSection, GeminiChatState
 
 st.set_page_config(layout="wide")
 
