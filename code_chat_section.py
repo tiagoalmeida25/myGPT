@@ -11,9 +11,8 @@ from vertexai.language_models import CodeChatModel, CodeChatSession
 # os.environ[
 #     "GOOGLE_APPLICATION_CREDENTIALS"
 # ] = "/Users/tiagoalmeida/Development/keys/ai-stuff-408621-a6f8bb7e6cad.json"
-with open(st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]) as f:
-    credentials_dict = json.load(f)
 
+credentials_dict = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
 
 aiplatform.init(
     project="ai-stuff-408621", location="us-central1", credentials=credentials_dict
