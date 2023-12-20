@@ -1,6 +1,4 @@
-from abc import ABC
 import json
-import os
 import streamlit as st
 import openai
 
@@ -30,7 +28,7 @@ class State:
         self.price = models[self.selected_model]["input"]
 
 
-class StateDependencies(ABC):
+class StateDependencies:
     def __init__(self, state):
         self.state = state
 
