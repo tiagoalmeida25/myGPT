@@ -2,6 +2,8 @@ import streamlit as st
 
 from conversation_section import ConversationSection, ConversationSectionState
 from image_generation_section import ImageGenerationSection, ImageGenerationSectionState
+from code_chat_section import CodeChatSection, CodeChatState
+from gemini_chat import GeminiChatSection, GeminiChatState
 
 st.set_page_config(layout="wide")
 
@@ -9,6 +11,8 @@ st.set_page_config(layout="wide")
 SECTION_STATE_MAP = {
     ConversationSection: ConversationSectionState,
     ImageGenerationSection: ImageGenerationSectionState,
+    CodeChatSection: CodeChatState,
+    GeminiChatSection: GeminiChatState,
 }
 
 
@@ -45,6 +49,8 @@ def run_app():
         mapping = {
             "Conversation": ConversationSection,
             "Image Generation": ImageGenerationSection,
+            "Code Chat": CodeChatSection,
+            "Gemini Chat": GeminiChatSection,
         }
 
         selected_section = st.sidebar.selectbox(
@@ -53,7 +59,8 @@ def run_app():
 
         sections = mapping.get(selected_section)
 
-        state = SECTION_STATE_MAP[sections].get_state()
+        state_instance = SECTION_STATE_MAP[sections]()
+        state = state_instance.get_state()
         section = sections(state)
         section.run()
 
