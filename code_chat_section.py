@@ -7,14 +7,12 @@ import os
 import json
 from google.cloud import aiplatform
 from vertexai.language_models import CodeChatModel, CodeChatSession
-# from google.oauth2 import Credentials
 
 # os.environ[
 #     "GOOGLE_APPLICATION_CREDENTIALS"
 # ] = "/Users/tiagoalmeida/Development/keys/ai-stuff-408621-a6f8bb7e6cad.json"
-credentials_string = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
-
-credentials_dict = json.loads(credentials_string)
+with open(st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]) as f:
+    credentials_dict = json.load(f)
 
 
 aiplatform.init(
