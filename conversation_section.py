@@ -1,16 +1,19 @@
 import json
+import requests
 import streamlit as st
-import openai
 
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# import openai
+
+# openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # with open("/Users/tiagoalmeida/Development/keys/openai_api_key.json", "r") as f:
 #     data = json.load(f)
 #     openai.api_key = data["api_key"]
 
 models = {
-    "gpt-3.5-turbo-1106": {"input": 0.001, "output": 0.002},
-    "gpt-4-1106-preview": {"input": 0.01, "output": 0.03},
+    "mistral": {"input": 0, "output": 0}
+    # "gpt-3.5-turbo-1106": {"input": 0.001, "output": 0.002},
+    # "gpt-4-1106-preview": {"input": 0.01, "output": 0.03},
 }
 
 
@@ -68,7 +71,7 @@ class ConversationSectionState(State):
         ]
         self.user_input = ""
         self.assistant_response = ""
-        self.save_state()
+        self.save_state(self.conversations)
 
     def get_state(self):
         return self
@@ -84,9 +87,7 @@ class ConversationSection:
         col1, col2 = st.columns([1, 2])
 
         with col1:
-            self.state.selected_model = st.selectbox(
-                "Select a model", options=self.state.get_models()
-            )
+            self.state.selected_model = st.selectbox("Select a model", options=self.state.get_models())
 
         with col2:
             st.text("")
@@ -94,17 +95,16 @@ class ConversationSection:
             st.info(f"Pricing: \${prices[0]} / 1K tokens , ${prices[1]} / 1K tokens")
 
         for conversation in self.state.get_conversations():
+            print(conversation)
             if conversation["role"] == "user":
                 st.markdown(f"**User:** {conversation['content']}")
             elif conversation["role"] == "assistant":
                 st.markdown(f"**Assistant:** {conversation['content']}")
 
-        self.state.user_input = st.text_input(
-            "Enter your message", value=self.state.user_input
-        )
+        self.state.user_input = st.text_input("Enter your message", value=self.state.user_input)
 
-        if self.state.user_input != "":
-            st.markdown(f"**Price:** ${self.calculate_price():.6f}")
+        # if self.state.user_input != "":
+        #     st.markdown(f"**Price:** ${self.calculate_price():.6f}")
 
         col1, _, col2 = st.columns([1, 2, 1])
 
@@ -120,12 +120,16 @@ class ConversationSection:
                     }
                 )
 
-                response = openai.chat.completions.create(
-                    model=self.state.selected_model,
-                    messages=self.state.conversations,
-                )
+                response = requests.post(
+                    "http://localhost:11434/api/chat",
+                    json={
+                        "model": self.state.selected_model,
+                        "messages": self.state.conversations,
+                        "stream": False,
+                    },
+                ).json()
 
-                self.state.assistant_response = response.choices[0].message.content
+                self.state.assistant_response = response["message"]["content"]
 
                 self.state.conversations.append(
                     {

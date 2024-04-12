@@ -1,7 +1,6 @@
 # vertex pricing
 # https://cloud.google.com/vertex-ai/docs/generative-ai/pricing?hl=pt-br#example_cost_calculation
 
-
 from google.cloud import imagen_v2
 import requests
 
