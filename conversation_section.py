@@ -1,20 +1,13 @@
 import json
-import requests
+import ollama
 import streamlit as st
+from streamlit_extras.stylable_container import stylable_container
+import textwrap
 
-# import openai
-
-# openai.api_key = st.secrets["OPENAI_API_KEY"]
-
-# with open("/Users/tiagoalmeida/Development/keys/openai_api_key.json", "r") as f:
-#     data = json.load(f)
-#     openai.api_key = data["api_key"]
-
-models = {
-    "mistral": {"input": 0, "output": 0}
-    # "gpt-3.5-turbo-1106": {"input": 0.001, "output": 0.002},
-    # "gpt-4-1106-preview": {"input": 0.01, "output": 0.03},
-}
+models = [
+    "mistral",
+    "codellama",
+]
 
 
 class State:
@@ -27,8 +20,7 @@ class State:
                 "content": "You are a helpful assistant. Some regards: When giving code as a response, no need to include comments, unless requested or strictly necessary.",
             },
         ]
-        self.selected_model = list(models.keys())[0]
-        self.price = models[self.selected_model]["input"]
+        self.selected_model = models
 
 
 class StateDependencies:
@@ -42,20 +34,19 @@ class ConversationSectionState(State):
         self.dependencies = StateDependencies(self)
 
     def get_models(self):
-        return models.keys()
-
-    def get_price(self):
-        return [
-            models[self.selected_model]["input"],
-            models[self.selected_model]["output"],
-        ]
+        return models
 
     def get_conversations(self):
         try:
             with open("conversations.json", "r") as f:
                 model_conversations_dict = json.load(f)
+
+            for conversation in model_conversations_dict:
+                conversation["content"] = textwrap.fill(conversation["content"], width=30)
+            print(model_conversations_dict)
         except:
             model_conversations_dict = []
+
         return model_conversations_dict
 
     def save_state(self, conversations):
@@ -82,34 +73,60 @@ class ConversationSection:
         self.state = state
 
     def run(self):
-        st.title("Conversation Mode")
+        st.title("Personal Chat")
 
-        col1, col2 = st.columns([1, 2])
+        self.state.selected_model = st.selectbox("Select a model", options=self.state.get_models(), on_change=self.state.clear_state)
 
-        with col1:
-            self.state.selected_model = st.selectbox("Select a model", options=self.state.get_models())
-
-        with col2:
-            st.text("")
-            prices = self.state.get_price()
-            st.info(f"Pricing: \${prices[0]} / 1K tokens , ${prices[1]} / 1K tokens")
-
-        for conversation in self.state.get_conversations():
-            print(conversation)
+        for i, conversation in enumerate(self.state.get_conversations()):
+            cols = st.columns([1, 49])
             if conversation["role"] == "user":
-                st.markdown(f"**User:** {conversation['content']}")
+                with cols[0]:
+                    st.markdown(":smile:")
+                with cols[1]:
+                    with stylable_container(
+                        key=f"user_{i}",
+                        css_styles="""
+                        {
+                            background-color: #171A21;
+                            color: white;
+                            border-radius: 8px;
+                            padding-top: 8px;
+                            padding-bottom: 8px;
+                            padding-left: 16px;
+                            padding-right: 16px;
+                            overflow-wrap: break-word;
+                            hyphens: auto;
+                        }
+                        """,
+                    ):
+                        st.markdown(f"{conversation['content']}")
             elif conversation["role"] == "assistant":
-                st.markdown(f"**Assistant:** {conversation['content']}")
+                with cols[0]:
+                    st.markdown(":robot_face:")
+                with cols[1]:
 
-        self.state.user_input = st.text_input("Enter your message", value=self.state.user_input)
+                    with stylable_container(
+                        key=f"user_{i}",
+                        css_styles="""
+                        {
+                            background-color: #1A1C24;
+                            color: white;
+                            border-radius: 8px;
+                            padding-top: 8px;
+                            padding-bottom: 8px;
+                            padding-left: 16px;
+                            padding-right: 16px;
+                        }
+                        """,
+                    ):
+                        st.markdown(f"{conversation['content']}")
 
-        # if self.state.user_input != "":
-        #     st.markdown(f"**Price:** ${self.calculate_price():.6f}")
+        self.state.user_input = st.text_area("How can I help you", value=self.state.user_input)
 
         col1, _, col2 = st.columns([1, 2, 1])
 
         with col1:
-            st.button("Send", use_container_width=True, key="send")
+            st.button("Send", use_container_width=True, key="send", on_click=lambda: setattr(self.state, "send", True))
 
             if st.session_state.send:
                 self.state.conversations = self.state.get_conversations()
@@ -120,14 +137,11 @@ class ConversationSection:
                     }
                 )
 
-                response = requests.post(
-                    "http://localhost:11434/api/chat",
-                    json={
-                        "model": self.state.selected_model,
-                        "messages": self.state.conversations,
-                        "stream": False,
-                    },
-                ).json()
+                response = ollama.chat(
+                    model=self.state.selected_model,
+                    messages=self.state.conversations,
+                    stream=False,
+                )
 
                 self.state.assistant_response = response["message"]["content"]
 
@@ -140,15 +154,10 @@ class ConversationSection:
                 self.state.save_state(self.state.conversations)
 
         with col2:
-            if st.button("Clear", use_container_width=True):
+            if st.button("Clear", use_container_width=True, key="clear", on_click=lambda: setattr(self.state, "clear", True)):
                 self.state.clear_state()
 
         if self.state.assistant_response != "":
-            st.markdown(f"**Assistant:** {self.state.assistant_response}")
             self.state.user_input = ""
             self.state.assistant_response = ""
-
-    def calculate_price(self):
-        tokens = len(self.state.user_input.split(" ")) * 0.75
-
-        return self.state.get_price()[0] * tokens / 1000
+            st.experimental_rerun()
